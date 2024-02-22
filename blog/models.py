@@ -2,13 +2,18 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+from .managers import PostPublishedManager
+
 
 class Category(models.Model):
+    """
+    Model representing a post category.
+    """
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=50, unique=True)
 
     class Meta:
-        verbose_name_plural = 'Categories/Категорії'
+        verbose_name_plural = 'Categories'
         ordering = ('name',)
 
     def __str__(self):
@@ -16,16 +21,19 @@ class Category(models.Model):
 
 
 class Post(models.Model):
+    """
+    Model representing a blog post.
+    """
     STATUS_CHOICES = (
-        ('draft', 'Draft/Чорновий'),
-        ('published', 'Published/Опубліковано'),
+        ('draft', 'Draft'),
+        ('published', 'Published'),
     )
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique_for_date='publish')
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE,
                                related_name='posts')
-    body = models.TextField(verbose_name='Content/Контент')
+    body = models.TextField(verbose_name='Content')
     publish = models.DateTimeField(default=timezone.localtime)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -37,6 +45,7 @@ class Post(models.Model):
                                  on_delete=models.CASCADE,
                                  related_name='posts')
     objects = models.Manager()
+    published = PostPublishedManager()
 
     class Meta:
         ordering = ('-publish', '-created')
@@ -46,6 +55,9 @@ class Post(models.Model):
 
 
 class PostLike(models.Model):
+    """
+    Model representing a like on a blog post.
+    """
     post = models.ForeignKey(Post,
                              on_delete=models.CASCADE,
                              related_name='likes')
@@ -56,6 +68,9 @@ class PostLike(models.Model):
 
 
 class PostDislike(models.Model):
+    """
+    Model representing a dislike on a blog post.
+    """
     post = models.ForeignKey(Post,
                              on_delete=models.CASCADE,
                              related_name='dislikes')
@@ -66,6 +81,9 @@ class PostDislike(models.Model):
 
 
 class Comment(models.Model):
+    """
+    Model representing a comment on a blog post.
+    """
     post = models.ForeignKey(Post,
                              on_delete=models.CASCADE,
                              related_name='comments')
@@ -84,6 +102,9 @@ class Comment(models.Model):
 
 
 class CommentLike(models.Model):
+    """
+    Model representing a like on a comment.
+    """
     comment = models.ForeignKey(Comment,
                                 on_delete=models.CASCADE,
                                 related_name='likes')
@@ -94,6 +115,9 @@ class CommentLike(models.Model):
 
 
 class CommentDislike(models.Model):
+    """
+    Model representing a dislike on a comment.
+    """
     comment = models.ForeignKey(Comment,
                                 on_delete=models.CASCADE,
                                 related_name='dislikes')

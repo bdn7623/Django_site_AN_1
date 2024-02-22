@@ -58,7 +58,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -66,6 +66,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+
+                # user context_processors
+                'blog.context_processors.get_categories',
             ],
         },
     },
@@ -109,11 +112,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'uk'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Kiev'
 
-USE_I18N = True
-
+USE_I18N = False
+USE_L10N = False
 USE_TZ = True
+
+DATE_FORMAT = 'd-m-Y'
+DATETIME_FORMAT = 'd b y - H:i:s'
 
 
 # Static files (CSS, JavaScript, Images)
