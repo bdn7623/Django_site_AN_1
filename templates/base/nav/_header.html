@@ -23,14 +23,35 @@
             </ul>
           </li>
 
-        <li><a href="#" class="nav-link px-2 text-white">Features</a></li>
-        <li><a href="#" class="nav-link px-2 text-white">Pricing</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle text-white" href="#" id="authorDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Authors
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="authorDropdown">
+            {% for author in authors %}
+            <li>
+              <a class="dropdown-item" href="{% url 'blog:post_author' author=author.id %}">
+                {{ author.username }}
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </li>
+
         <li><a href="#" class="nav-link px-2 text-white">FAQs</a></li>
         <li><a href="#" class="nav-link px-2 text-white">About</a></li>
       </ul>
 
-      <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">
-        <input type="search" class="form-control form-control-dark" placeholder="Search..." aria-label="Search">
+      <form class="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3" method="get" action="{% url 'blog:search_posts' %}">
+        <div class="input-group">
+          <select class="form-select me-1" name="search_param">
+            <option value="post">Post</option>
+            <option value="author">Author</option>
+            <option value="title">Title</option>
+          </select>
+          <input type="search" class="form-control form-control-dark" placeholder="Search..." aria-label="Search"
+                  name="search_query">
+        </div>
       </form>
 
       <div class="text-end">

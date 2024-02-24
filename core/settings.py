@@ -69,6 +69,7 @@ TEMPLATES = [
 
                 # user context_processors
                 'blog.context_processors.get_categories',
+                'blog.context_processors.get_author',
             ],
         },
     },
