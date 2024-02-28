@@ -1,8 +1,13 @@
-from django.shortcuts import render
+import re
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 
-from .models import Post
+from .models import Post, PostLike, PostDislike
 from .utils import paginate_objects
+
+from .forms import CommentForm
 
 
 def post_list(request):
@@ -18,6 +23,30 @@ def post_list(request):
     objects = Post.published.all()
     posts = paginate_objects(request, objects)
     return render(request, 'blog/post/list.html', {'posts': posts})
+
+
+def post_detail(request, year, month, day, post_slug):
+    """
+    Render details of a specific post.
+
+    Args:
+        request: HttpRequest object representing the current request.
+        year (int): Year of the post's publication.
+        month (int): Month of the post's publication.
+        day (int): Day of the post's publication.
+        post_slug (str): Slug of the post.
+
+    Returns:
+        HttpResponse: Rendered HTML response containing the details of the post.
+    """
+    post = get_object_or_404(Post,
+                             slug=post_slug,
+                             status='published',
+                             publish__year=year,
+                             publish__month=month,
+                             publish__day=day)
+    form = CommentForm()
+    return render(request, 'blog/post/detail.html', {'post': post, 'form': form})
 
 
 def post_category(request, category):
@@ -54,13 +83,13 @@ def post_author(request, author):
 
 def search_post(request):
     """
-    Render a list of posts filtered by search query.
+    Search posts based on user input.
 
     Args:
         request: HttpRequest object representing the current request.
 
     Returns:
-        HttpResponse: Rendered HTML response containing the filtered list of posts.
+        HttpResponse: Rendered HTML response containing the search results.
     """
     search_query = request.GET.get('search_query')
     search_param = request.GET.get('search_param')
@@ -75,5 +104,92 @@ def search_post(request):
             posts = posts.filter(
                 Q(title__icontains=search_query) | Q(body__icontains=search_query)
             )
+
+        elif search_param == 'publish':
+            parts = re.split(r'\W', search_query)
+            year = parts[0]
+            month = parts[1] if len(parts) > 1 else None
+            day = parts[2] if len(parts) > 2 else None
+
+            if month and day:
+                posts = posts.filter(publish__year=year, publish__month=month, publish__day=day)
+            elif month:
+                posts = posts.filter(publish__year=year, publish__month=month)
+            else:
+                posts = posts.filter(publish__year=year)
+
     posts = paginate_objects(request, posts)
     return render(request, 'blog/post/list.html', {'posts': posts})
+
+
+@login_required
+def like_post(request, post_id):
+    """
+    Like a post.
+
+    Args:
+        request: HttpRequest object representing the current request.
+        post_id (int): ID of the post to like.
+
+    Returns:
+        HttpResponseRedirect: Redirects to the detail page of the liked post.
+    """
+    post = get_object_or_404(Post, id=post_id)
+
+    if post.is_liked_by(request.user):
+        like = post.likes.get(user=request.user)
+        like.delete()
+    else:
+        PostLike.objects.create(post=post, user=request.user)
+        if post.is_disliked_by(request.user):
+            dislike = post.dislikes.get(user=request.user)
+            dislike.delete()
+    return redirect(post.get_absolute_url())
+
+
+@login_required
+def dislike_post(request, post_id):
+    """
+    Dislike a post.
+
+    Args:
+        request: HttpRequest object representing the current request.
+        post_id (int): ID of the post to dislike.
+
+    Returns:
+        HttpResponseRedirect: Redirects to the detail page of the disliked post.
+    """
+    post = get_object_or_404(Post, id=post_id)
+
+    if post.is_disliked_by(request.user):
+        dislike = post.dislikes.get(user=request.user)
+        dislike.delete()
+    else:
+        PostDislike.objects.create(post=post, user=request.user)
+        if post.is_liked_by(request.user):
+            like = post.likes.get(user=request.user)
+            like.delete()
+    return redirect(post.get_absolute_url())
+
+
+@login_required
+def add_comment(request, post_id):
+    """
+    Add a comment to a post.
+
+    Args:
+        request: HttpRequest object representing the current request.
+        post_id (int): ID of the post to add the comment to.
+
+    Returns:
+        HttpResponseRedirect: Redirects to the detail page of the post with the new comment.
+    """
+    post = get_object_or_404(Post, id=post_id)
+    if request.method == 'POST':
+        comment_form = CommentForm(data=request.POST)
+        if comment_form.is_valid():
+            new_comment = comment_form.save(commit=False)
+            new_comment.post = post
+            new_comment.author = request.user
+            new_comment.save()
+    return redirect(post.get_absolute_url())
