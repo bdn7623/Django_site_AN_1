@@ -12,8 +12,7 @@
         <li class="page-item"><a class="page-link" href="?page={{ page.number }}"><strong>{{ page.number }}</strong></a>
         </li>
         {% if page.has_next %}
-        <li class="page-item"><a class="page-link" href="?page={{ page.next_page_number }}">{{ page.next_page_number
-            }}</a></li>
+        <li class="page-item"><a class="page-link" href="?page={{ page.next_page_number }}">{{ page.next_page_number }}</a></li>
         {% endif %}
 
         {% if page.has_next %}

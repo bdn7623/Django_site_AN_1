@@ -121,6 +121,12 @@ class Comment(models.Model):
     def __str__(self):
         return f'{self.author} - {self.post.title}'
 
+    def is_liked_by(self, user):
+        return self.likes.filter(user=user).exists()
+
+    def is_disliked_by(self, user):
+        return self.dislikes.filter(user=user).exists()
+
 
 class CommentLike(models.Model):
     """

@@ -1,10 +1,11 @@
 import re
 
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 
-from .models import Post, PostLike, PostDislike
+from .models import Post, PostLike, PostDislike, Comment, CommentLike, CommentDislike
 from .utils import paginate_objects
 
 from .forms import CommentForm
@@ -144,7 +145,7 @@ def like_post(request, post_id):
         if post.is_disliked_by(request.user):
             dislike = post.dislikes.get(user=request.user)
             dislike.delete()
-    return redirect(post.get_absolute_url())
+    return HttpResponseRedirect(f'{post.get_absolute_url()}#postlikeDislike')
 
 
 @login_required
@@ -169,7 +170,7 @@ def dislike_post(request, post_id):
         if post.is_liked_by(request.user):
             like = post.likes.get(user=request.user)
             like.delete()
-    return redirect(post.get_absolute_url())
+    return HttpResponseRedirect(f'{post.get_absolute_url()}#postlikeDislike')
 
 
 @login_required
@@ -192,4 +193,59 @@ def add_comment(request, post_id):
             new_comment.post = post
             new_comment.author = request.user
             new_comment.save()
-    return redirect(post.get_absolute_url())
+    return HttpResponseRedirect(f'{post.get_absolute_url()}#postAdd')
+
+
+@login_required
+def like_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+
+    if comment.is_liked_by(request.user):
+        like = comment.likes.get(user=request.user)
+        like.delete()
+    else:
+        CommentLike.objects.create(comment=comment, user=request.user)
+        if comment.is_disliked_by(request.user):
+            dislike = comment.dislikes.get(user=request.user)
+            dislike.delete()
+    return HttpResponseRedirect(f'{comment.post.get_absolute_url()}#commentLike{comment.id}')
+
+
+@login_required
+def dislike_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+
+    if comment.is_disliked_by(request.user):
+        dislike = comment.dislikes.get(user=request.user)
+        dislike.delete()
+    else:
+        CommentDislike.objects.create(comment=comment, user=request.user)
+        if comment.is_liked_by(request.user):
+            like = comment.likes.get(user=request.user)
+            like.delete()
+    return HttpResponseRedirect(f'{comment.post.get_absolute_url()}#commentLike{comment.id}')
+
+
+@login_required
+@user_passes_test(lambda user: user.is_superuser)
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    comment.delete()
+    return HttpResponseRedirect(f'{comment.post.get_absolute_url()}#comments')
+"""
+@login_required
+def toggle_comment_active(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user == comment.author or comment.usr.is_superuser:
+        comment.save()
+    return HttpResponseRedirect(f'{comment.post.get_absolute_url()}#comments')
+"""
+
+
+@login_required
+@user_passes_test(lambda user: user.is_superuser)
+def toggle_comment_active(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    comment.active = not comment.active
+    comment.save()
+    return HttpResponseRedirect(f'{comment.post.get_absolute_url()}#comments')
