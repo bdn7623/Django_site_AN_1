@@ -6,7 +6,9 @@ All posts
 
 {% block content %}
 <div class="row mb-2">
-    {% include 'base/_pagination.html' with page=posts %}
+    {% if posts %}
+        {% include 'base/_pagination.html' with page=posts %}
+    {% endif %}
 
     {% for post in posts %}
     <div class="col-md-6">
@@ -26,6 +28,8 @@ All posts
             </div>
         </div>
     </div>
+    {% empty %}
+    <h3>No posts yet</h3>
     {% endfor %}
 </div>
 {% endblock content %}
