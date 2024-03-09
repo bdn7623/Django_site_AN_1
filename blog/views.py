@@ -50,7 +50,7 @@ def post_detail(request, year, month, day, post_slug):
     return render(request, 'blog/post/detail.html', {'post': post, 'form': form})
 
 
-@login_required
+@login_required(login_url='../../accounts/register/')
 def add_post(request):
     """
     View function to add a new post.
@@ -197,7 +197,7 @@ def search_post(request):
     return render(request, 'blog/post/list.html', {'posts': posts})
 
 
-@login_required
+@login_required(login_url='../../../../accounts/register/')
 def like_post(request, post_id):
     """
     Like a post.
@@ -222,7 +222,7 @@ def like_post(request, post_id):
     return HttpResponseRedirect(f'{post.get_absolute_url()}#postlikeDislike')
 
 
-@login_required
+@login_required(login_url='../../../../accounts/register/')
 def dislike_post(request, post_id):
     """
     Dislike a post.
@@ -247,7 +247,7 @@ def dislike_post(request, post_id):
     return HttpResponseRedirect(f'{post.get_absolute_url()}#postlikeDislike')
 
 
-@login_required
+@login_required(login_url='../../../../accounts/register/')
 def add_comment(request, post_id):
     """
     Add a comment to a post.
@@ -270,7 +270,7 @@ def add_comment(request, post_id):
     return HttpResponseRedirect(f'{post.get_absolute_url()}#comments')
 
 
-@login_required
+@login_required(login_url='../../../../accounts/register/')
 def like_comment(request, comment_id):
     """
     View function to like a comment.
@@ -295,7 +295,7 @@ def like_comment(request, comment_id):
     return HttpResponseRedirect(f'{comment.post.get_absolute_url()}#commentLike{comment.id}')
 
 
-@login_required
+@login_required(login_url='../../../../accounts/register/')
 def dislike_comment(request, comment_id):
     """
     View function to dislike a comment.

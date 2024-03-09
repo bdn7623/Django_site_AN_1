@@ -32,3 +32,5 @@ class LoginForm(forms.Form):
         initial=True,
         widget=forms.CheckboxInput({'class': 'form-check-input'})
     )
+
+
