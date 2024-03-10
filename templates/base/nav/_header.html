@@ -61,13 +61,23 @@
             </form>
 
             <div class="text-end">
+                {% if request.user.is_authenticated %}
+                <a href="" class="text-decoration-none text-white me-3">
+                  <strong>
+                    {{ request.user.username }}
+                  </strong>
+                </a>
+                 <a href="{% url 'accounts:logout' %}">
+                  <button type="button" class="btn btn-warning">Logout</button>
+                </a>
+                {% else %}
                 <a href="{% url 'accounts:login' %}">
                   <button type="button" class="btn btn-outline-light me-2">Login</button>
                 </a>
                 <a href="{% url 'accounts:register' %}">
                   <button type="button" class="btn btn-warning">Sign-up</button>
                 </a>
-                {{request.user}}
+                {% endif %}
             </div>
 
         </div>

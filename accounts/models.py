@@ -18,21 +18,35 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
-class ActivationToken(models.Model):
+
+class AbstractToken(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     token = models.CharField(max_length=32, default='', unique=True)
     created = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        self.token = get_random_string(32)
+        super(AbstractToken, self).save(*args, **kwargs)
+
+    def verify_token(self):
+        validate_exp = timezone.localtime(self.created) > timezone.now() - timezone.timedelta(days=1)
+        return validate_exp
+
+
+class ActivationToken(AbstractToken):
     def __str__(self):
         return f'{self.user.username}\'s activate token'
 
     class Meta:
         verbose_name_plural = 'Activation Tokens'
 
-    def save(self, *args, **kwargs):
-        self.token = get_random_string(32)
-        super(ActivationToken, self).save(*args, **kwargs)
 
-    def verify_token(self):
-        validate_exp = timezone.localtime(self.created) > timezone.now() - timezone.timedelta(days=1)
-        return validate_exp
+class PasswordResetToken(AbstractToken):
+    def __str__(self):
+        return f'{self.user.username}\'s password reset token'
+
+    class Meta:
+        verbose_name_plural = 'Password Reset Tokens'

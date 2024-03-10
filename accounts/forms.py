@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, SetPasswordForm
 
 User = get_user_model()
 
@@ -34,3 +34,33 @@ class LoginForm(forms.Form):
     )
 
 
+class BaseReactivationForm(forms.Form):
+    email = forms.EmailField(label='Your email',
+                             required=True,
+                             widget=forms.EmailInput(attrs={'class': 'form-control'}))
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        user = User.objects.filter(email=email).first()
+        if user is None:
+            raise forms.ValidationError("User with this email doesn't exists")
+        return email
+
+
+class ReactivationForm(BaseReactivationForm):
+    pass
+
+
+class PasswordSetForm(SetPasswordForm):
+    class Meta:
+        model = User
+        fields = ["new_password1", "new_password2"]
+        widgets = {
+            'new_password1': forms.PasswordInput(),
+            'new_password2': forms.PasswordInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(PasswordSetForm, self).__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({'class': 'form-control mt-2 mb-2'})

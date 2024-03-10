@@ -21,9 +21,9 @@
 </div>
 
 <div class="mt-4">
-  <a href="" class="link-secondary">Reactivate token</a>
+  <a href="{% url 'accounts:reactivate_sent' %}" class="link-secondary">Reactivate token</a>
 </div>
 <div>
-  <a href="" class="link-secondary">Reset token</a>
+  <a href="{% url 'accounts:password_reset_sent' %}" class="link-secondary">Password reset</a>
 </div>
 {% endblock content %}

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import CustomUser, ActivationToken
+from .models import CustomUser, ActivationToken, PasswordResetToken
 
 
 @admin.register(CustomUser)
@@ -11,5 +11,11 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(ActivationToken)
 class ActivationTokenAdmin(admin.ModelAdmin):
+    list_display = ('user', 'token', 'created')
+    search_fields = ('user', 'token')
+
+
+@admin.register(PasswordResetToken)
+class PasswordResetTokenAdmin(admin.ModelAdmin):
     list_display = ('user', 'token', 'created')
     search_fields = ('user', 'token')
