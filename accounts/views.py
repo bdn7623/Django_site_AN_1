@@ -1,11 +1,19 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model, login, authenticate, logout
 from django.contrib import messages
 
-from .forms import RegisterForm, LoginForm, ReactivationForm, PasswordSetForm
-from .models import ActivationToken, PasswordResetToken
+from blog.models import Post
+from .forms import (
+    RegisterForm,
+    LoginForm,
+    ReactivationForm,
+    PasswordSetForm,
+    ProfileForm
+)
+from .models import ActivationToken, PasswordResetToken, Profile
 from .utils import send_activation_email, send_password_reset_email
 
 User = get_user_model()
@@ -169,3 +177,63 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('accounts:login')
+
+
+@login_required
+def profile_create_view(request):
+    if hasattr(request.user, 'profile'):
+        messages.info(request, 'You already have profile')
+        return redirect('blog:post_list')
+
+    if request.method == 'POST':
+        form = ProfileForm(request.POST)
+
+        if form.is_valid():
+            profile = form.save(commit=False)
+            profile.user = request.user
+            profile.save()
+            return redirect('blog:post_list')
+        else:
+            context = {
+                'form': form,
+                'form_errors': form.errors
+            }
+            return render(request, 'accounts/profile/create.html', context)
+
+    form = ProfileForm()
+    return render(request, 'accounts/profile/create.html', {'form': form})
+
+
+def profile_detail_view(request, username):
+    profile = get_object_or_404(Profile, user__username=username)
+    posts = Post.published.filter(author=profile.user)[:4]
+    context = {
+        'profile': profile,
+        'posts': posts
+    }
+    return render(request, 'accounts/profile/detail.html', context)
+
+
+@login_required
+def profile_update_view(request, username):
+    profile = get_object_or_404(Profile, user__username=username)
+
+    if request.user != profile.user:
+        raise PermissionDenied("You don't have permission to edit this profile")
+
+    if request.method == 'POST':
+        form = ProfileForm(instance=profile, data=request.POST)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated')
+            return redirect('accounts:profile_detail', username=profile.user.username)
+        else:
+            context = {
+                'form': form,
+                'form_errors': form.errors
+            }
+            return render(request, 'accounts/profile/update.html', context)
+
+    form = ProfileForm(instance=profile)
+    return render(request, 'accounts/profile/update.html', {'form': form})

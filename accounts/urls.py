@@ -14,4 +14,7 @@ urlpatterns = [
     path('password-reset-done/<str:username>/<str:token>/', views.password_reset_done_view, name='password_reset_done'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('create-profile/', views.profile_create_view, name='profile_create'),
+    path('profile/<str:username>/show/', views.profile_detail_view, name='profile_detail'),
+    path('profile/<str:username>/update/', views.profile_update_view, name='profile_update'),
 ]
