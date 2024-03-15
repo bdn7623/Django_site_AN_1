@@ -10,6 +10,15 @@ from .validators import validate_birth_date
 
 
 class CustomUser(AbstractUser):
+    """
+    Custom user model extending AbstractUser.
+
+    Attributes:
+    - username (str): The username of the user.
+    - email (str): The email address of the user.
+
+    """
+
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField(unique=True, max_length=255)
 
@@ -23,6 +32,16 @@ class CustomUser(AbstractUser):
 
 
 class AbstractToken(models.Model):
+    """
+    Abstract model for token.
+
+    Attributes:
+    - user (CustomUser): The user associated with the token.
+    - token (str): The token value.
+    - created (datetime): The datetime when the token was created.
+
+    """
+
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     token = models.CharField(max_length=32, default='', unique=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -40,6 +59,14 @@ class AbstractToken(models.Model):
 
 
 class ActivationToken(AbstractToken):
+    """
+    Model for activation token.
+
+    Attributes:
+    - user (CustomUser): The user associated with the activation token.
+
+    """
+
     def __str__(self):
         return f'{self.user.username}\'s activate token'
 
@@ -48,6 +75,14 @@ class ActivationToken(AbstractToken):
 
 
 class PasswordResetToken(AbstractToken):
+    """
+    Model for password reset token.
+
+    Attributes:
+    - user (CustomUser): The user associated with the password reset token.
+
+    """
+
     def __str__(self):
         return f'{self.user.username}\'s password reset token'
 
@@ -56,6 +91,19 @@ class PasswordResetToken(AbstractToken):
 
 
 class Profile(models.Model):
+    """
+    Model for user profile.
+
+    Attributes:
+    - user (CustomUser): The user associated with the profile.
+    - avatar (str): The URL of the user's avatar.
+    - gender (str): The gender of the user.
+    - date_of_birth (Date): The date of birth of the user.
+    - bio (str): The biography of the user.
+    - info (str): Additional information about the user.
+
+    """
+
     GENDER_CHOICES = (
         ('male', 'Male'),
         ('female', 'Female')
